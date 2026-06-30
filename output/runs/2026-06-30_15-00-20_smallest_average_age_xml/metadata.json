@@ -1,0 +1,12 @@
+{
+    "status": "success",
+    "action": "query",
+    "query": "smallest_average_age",
+    "format": "xml",
+    "result_path": "output\\runs\\2026-06-30_15-00-20_smallest_average_age_xml\\result.xml",
+    "row_counts": {
+        "smallest_average_age": 5
+    },
+    "explain": false,
+    "run_folder": "output\\runs\\2026-06-30_15-00-20_smallest_average_age_xml"
+}

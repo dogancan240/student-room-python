@@ -1,0 +1,1 @@
+main.py --query room_student_counts --format json

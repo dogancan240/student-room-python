@@ -1,0 +1,22 @@
+Sort  (cost=340.69..343.19 rows=1000 width=21) (actual time=4.373..4.403 rows=1000 loops=1)
+  Sort Key: r.id
+  Sort Method: quicksort  Memory: 103kB
+  Buffers: shared hit=85
+  ->  HashAggregate  (cost=280.86..290.86 rows=1000 width=21) (actual time=4.084..4.180 rows=1000 loops=1)
+        Group Key: r.id
+        Batches: 1  Memory Usage: 193kB
+        Buffers: shared hit=82
+        ->  Hash Right Join  (cost=28.50..230.86 rows=10000 width=17) (actual time=0.186..2.788 rows=10001 loops=1)
+              Hash Cond: (s.room_id = r.id)
+              Buffers: shared hit=82
+              ->  Seq Scan on students s  (cost=0.00..176.00 rows=10000 width=8) (actual time=0.008..0.640 rows=10000 loops=1)
+                    Buffers: shared hit=76
+              ->  Hash  (cost=16.00..16.00 rows=1000 width=13) (actual time=0.165..0.166 rows=1000 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 53kB
+                    Buffers: shared hit=6
+                    ->  Seq Scan on rooms r  (cost=0.00..16.00 rows=1000 width=13) (actual time=0.010..0.065 rows=1000 loops=1)
+                          Buffers: shared hit=6
+Planning:
+  Buffers: shared hit=136
+Planning Time: 1.680 ms
+Execution Time: 4.583 ms

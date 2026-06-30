@@ -1,0 +1,1 @@
+main.py --query smallest_average_age --format xml

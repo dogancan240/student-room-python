@@ -1,0 +1,12 @@
+{
+    "status": "success",
+    "action": "query",
+    "query": "room_student_counts",
+    "format": "json",
+    "result_path": "output\\runs\\2026-06-30_14-33-05_room_student_counts_json_explain\\result.json",
+    "row_counts": {
+        "room_student_counts": 1000
+    },
+    "explain": true,
+    "run_folder": "output\\runs\\2026-06-30_14-33-05_room_student_counts_json_explain"
+}

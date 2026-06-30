@@ -1,0 +1,5 @@
+[2026-06-30T15:00:20] Command started.
+[2026-06-30T15:00:20] Database schema initialized.
+[2026-06-30T15:00:21] Rooms and students loaded.
+[2026-06-30T15:00:21] Query result exported to output\runs\2026-06-30_15-00-20_smallest_average_age_xml\result.xml.
+[2026-06-30T15:00:21] Command completed.

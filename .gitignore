@@ -1,7 +1,7 @@
 .env
 .venv/
 venv/
-
+.githignore
 __pycache__/
 *.py[cod]
 
@@ -10,6 +10,6 @@ __pycache__/
 .ruff_cache/
 
 .agents/
-output/
+
 .DS_Store
 MODULARIZATION_GUIDE.md
