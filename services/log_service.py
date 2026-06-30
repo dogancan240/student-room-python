@@ -3,9 +3,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-"""
-asdasd
-"""
+
 class LogService:
     def __init__(self, output_root: str = "output/runs") -> None:
         self.output_root = Path(output_root)
