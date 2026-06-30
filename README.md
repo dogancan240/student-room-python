@@ -1,18 +1,15 @@
 # Student Room Database Practice
 
-Python script for loading `rooms` and `students` JSON files into PostgreSQL and exporting the required SQL query results as JSON or XML.
+Python command-line app for loading `rooms` and `students` JSON files into PostgreSQL, running room analytics queries, managing helpful indexes, and saving detailed command output logs.
 
 ## What It Does
 
 - Creates the `rooms` and `students` tables.
-- Loads rooms and students from JSON files.
-- Runs all required analytics in SQL:
-  - rooms with student counts
-  - 5 rooms with the smallest average student age
-  - 5 rooms with the largest student age difference
-  - rooms where students of different sexes live
-- Exports results to JSON or XML.
-- Provides SQL files for index experiments and `EXPLAIN` plans.
+- Loads rooms and students from JSON files before query commands.
+- Runs one selected analytics query or all analytics queries.
+- Exports query results as JSON or XML.
+- Adds or removes recommended PostgreSQL indexes from the CLI.
+- Saves every command result under `output/runs/` with command text, SQL, metadata, and logs.
 
 ## Setup
 
@@ -26,7 +23,7 @@ python -m venv .venv
 Install dependencies:
 
 ```powershell
-pip install "psycopg[binary]" python-dotenv
+pip install -r requirements.txt
 ```
 
 Create a PostgreSQL database, then add a `.env` file:
@@ -39,88 +36,146 @@ DB_USER=postgres
 DB_PASSWORD=your_password
 ```
 
-## Run The App
+## Query Commands
 
-Export JSON:
+Run one query:
 
 ```powershell
-python main.py --students data/students.json --rooms data/rooms.json --format json --output output/results.json
+python main.py --query room_student_counts --format json
+python main.py --query smallest_average_age --format xml
+python main.py --query largest_age_difference --format json
+python main.py --query mixed_sex_rooms --format json
 ```
 
-Export XML:
+Run all queries:
 
 ```powershell
-python main.py --students data/students.json --rooms data/rooms.json --format xml --output output/results.xml
+python main.py --query all --format json
+python main.py --query all --format xml
 ```
 
-If `--output` is omitted, the default path is `output/results.<format>`.
-
-## Index Experiments
-
-The recommended indexes are in `index_experiments/indexes.sql`. The explain-plan queries are in `index_experiments/explain_queries.sql`.
-
-Create folders for saved benchmark artifacts:
+Save an `EXPLAIN (ANALYZE, BUFFERS)` result too:
 
 ```powershell
-New-Item -ItemType Directory -Force output\explain_plans
-New-Item -ItemType Directory -Force output\benchmark_results
+python main.py --query room_student_counts --format json --explain
 ```
 
-Use your own PostgreSQL connection values in the examples below.
+Available query names:
 
-Run a baseline without custom indexes:
-
-```powershell
-psql -h localhost -U postgres -d student_rooms -c "DROP INDEX IF EXISTS idx_students_room_id; DROP INDEX IF EXISTS idx_students_room_id_birthday; DROP INDEX IF EXISTS idx_students_room_id_sex;"
-psql -h localhost -U postgres -d student_rooms -f index_experiments/explain_queries.sql -o output/explain_plans/00_without_indexes.txt
+```text
+room_student_counts
+smallest_average_age
+largest_age_difference
+mixed_sex_rooms
+all
 ```
 
-Try `students(room_id)`:
+By default, query commands load:
 
-```powershell
-psql -h localhost -U postgres -d student_rooms -c "DROP INDEX IF EXISTS idx_students_room_id; DROP INDEX IF EXISTS idx_students_room_id_birthday; DROP INDEX IF EXISTS idx_students_room_id_sex;"
-psql -h localhost -U postgres -d student_rooms -c "CREATE INDEX IF NOT EXISTS idx_students_room_id ON students(room_id);"
-psql -h localhost -U postgres -d student_rooms -f index_experiments/explain_queries.sql -o output/explain_plans/01_room_id_index.txt
+```text
+data/rooms.json
+data/students.json
 ```
 
-Try `students(room_id, birthday)`:
+You can override those paths:
 
 ```powershell
-psql -h localhost -U postgres -d student_rooms -c "DROP INDEX IF EXISTS idx_students_room_id; DROP INDEX IF EXISTS idx_students_room_id_birthday; DROP INDEX IF EXISTS idx_students_room_id_sex;"
-psql -h localhost -U postgres -d student_rooms -c "CREATE INDEX IF NOT EXISTS idx_students_room_id_birthday ON students(room_id, birthday);"
-psql -h localhost -U postgres -d student_rooms -f index_experiments/explain_queries.sql -o output/explain_plans/02_room_id_birthday_index.txt
+python main.py --query all --format json --rooms data/rooms.json --students data/students.json
 ```
 
-Try `students(room_id, sex)`:
+If the database is already loaded, skip loading:
 
 ```powershell
-psql -h localhost -U postgres -d student_rooms -c "DROP INDEX IF EXISTS idx_students_room_id; DROP INDEX IF EXISTS idx_students_room_id_birthday; DROP INDEX IF EXISTS idx_students_room_id_sex;"
-psql -h localhost -U postgres -d student_rooms -c "CREATE INDEX IF NOT EXISTS idx_students_room_id_sex ON students(room_id, sex);"
-psql -h localhost -U postgres -d student_rooms -f index_experiments/explain_queries.sql -o output/explain_plans/03_room_id_sex_index.txt
+python main.py --query all --format json --skip-load
 ```
 
-Apply all recommended indexes:
+## Index Commands
+
+Add all recommended indexes:
 
 ```powershell
-psql -h localhost -U postgres -d student_rooms -f index_experiments/indexes.sql
-psql -h localhost -U postgres -d student_rooms -f index_experiments/explain_queries.sql -o output/explain_plans/04_all_indexes.txt
+python main.py --indexes add --index all
 ```
 
-Save benchmark notes in `output/benchmark_results/`, for example:
+Remove all recommended indexes:
 
 ```powershell
-@"
-Baseline: check output/explain_plans/00_without_indexes.txt
-room_id index: check output/explain_plans/01_room_id_index.txt
-room_id_birthday index: check output/explain_plans/02_room_id_birthday_index.txt
-room_id_sex index: check output/explain_plans/03_room_id_sex_index.txt
-all indexes: check output/explain_plans/04_all_indexes.txt
-"@ | Set-Content output\benchmark_results\summary.txt
+python main.py --indexes remove --index all
+```
+
+Manage one index:
+
+```powershell
+python main.py --indexes add --index room_id
+python main.py --indexes add --index room_id_birthday
+python main.py --indexes add --index room_id_sex
+python main.py --indexes remove --index room_id_sex
+```
+
+Available index names:
+
+```text
+room_id
+room_id_birthday
+room_id_sex
+all
+```
+
+## Output Logs
+
+Each command creates a new folder under:
+
+```text
+output/runs/
+```
+
+Example query output:
+
+```text
+output/runs/2026-06-30_14-30-10_room_student_counts_json/
+  command.txt
+  app.log
+  query.sql
+  result.json
+  metadata.json
+  explain.txt
+```
+
+Example index output:
+
+```text
+output/runs/2026-06-30_14-35-20_indexes_add_all/
+  command.txt
+  app.log
+  indexes.sql
+  metadata.json
+```
+
+## Project Structure
+
+```text
+main.py                  # starts the app
+cli.py                   # parses command-line arguments
+app.py                   # coordinates query/index commands
+config.py                # loads database settings
+
+database/
+  connection.py          # PostgreSQL connection context manager
+  init_db.py             # creates tables from schema.sql
+  loader.py              # loads JSON data
+  schema.sql             # database schema
+
+services/
+  export_service.py      # writes JSON/XML
+  query_service.py       # runs SQL query files
+  index_service.py       # adds/removes index SQL files
+  log_service.py         # saves command logs and metadata
+  queries/               # analytics SQL files
+  indexes/               # index SQL files
 ```
 
 ## Assignment Notes
 
-- All math is done in SQL inside PostgreSQL.
+- All analytics math is done in SQL inside PostgreSQL.
 - The project uses raw SQL with `psycopg`; no ORM is used.
-- The current folder is not initialized as a git repository. Before submission, push the completed task to a public Git repository.
-- The final assignment reply should include a link to that public Git repository.
+- `index_experiments/` still contains standalone SQL files for manual index experiments and explain-plan comparisons.

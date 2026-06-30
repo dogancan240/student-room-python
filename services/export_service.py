@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 class ExportService:
-    def export(self, data: dict, output_format: str, output_path: str) -> None:
+    def export(self, data: dict, output_format: str, output_path: str | Path) -> None:
         if output_format == "json":
             self._export_json(data, output_path)
         elif output_format == "xml":
@@ -12,14 +12,14 @@ class ExportService:
         else:
             raise ValueError("Output format must be 'json' or 'xml'.")
 
-    def _export_json(self, data: dict, output_path: str) -> None:
+    def _export_json(self, data: dict, output_path: str | Path) -> None:
         path = Path(output_path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
         with path.open("w", encoding="utf-8") as file:
             json.dump(data, file, indent=4, ensure_ascii=False)
 
-    def _export_xml(self, data: dict, output_path: str) -> None:
+    def _export_xml(self, data: dict, output_path: str | Path) -> None:
         path = Path(output_path)
         path.parent.mkdir(parents=True, exist_ok=True)
         root = ET.Element("results")

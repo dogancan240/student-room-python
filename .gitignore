@@ -12,3 +12,4 @@ __pycache__/
 .agents/
 output/
 .DS_Store
+MODULARIZATION_GUIDE.md

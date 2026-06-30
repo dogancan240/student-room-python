@@ -1,75 +1,64 @@
+from pathlib import Path
+
 from database.connection import get_connection
 
 
 class QueryService:
-    def get_room_student_counts(self) -> list[dict]:
-        query = """
-            SELECT
-                r.id AS room_id,
-                r.name AS room_name,
-                COUNT(s.id) AS student_count
-            FROM rooms r
-            LEFT JOIN students s ON r.id = s.room_id
-            GROUP BY r.id, r.name
-            ORDER BY r.id;
-        """
+    QUERY_FILES = {
+        "room_student_counts": "room_student_counts.sql",
+        "smallest_average_age": "smallest_average_age.sql",
+        "largest_age_difference": "largest_age_difference.sql",
+        "mixed_sex_rooms": "mixed_sex_rooms.sql",
+    }
 
+    def __init__(self, queries_dir: Path | None = None) -> None:
+        self.queries_dir = queries_dir or Path(__file__).with_name("queries")
+
+    def available_queries(self) -> tuple[str, ...]:
+        return tuple(self.QUERY_FILES)
+
+    def run_query(self, query_name: str) -> list[dict]:
+        query = self.get_sql(query_name)
         return self._fetch_all(query)
 
-    def get_rooms_with_smallest_average_age(self, limit: int = 5) -> list[dict]:
-        query = """
-            SELECT
-                r.id AS room_id,
-                r.name AS room_name,
-                ROUND(AVG((CURRENT_DATE - s.birthday) / 365.25)::numeric, 2)::float AS average_age
-            FROM rooms r
-            JOIN students s ON r.id = s.room_id
-            GROUP BY r.id, r.name
-            ORDER BY average_age ASC, r.id
-            LIMIT %s;
-        """
+    def run_all_queries(self) -> dict[str, list[dict]]:
+        return {
+            query_name: self.run_query(query_name)
+            for query_name in self.available_queries()
+        }
 
-        return self._fetch_all(query, (limit,))
+    def get_sql(self, query_name: str) -> str:
+        self._validate_query_name(query_name)
+        query_path = self.queries_dir / self.QUERY_FILES[query_name]
+        query = query_path.read_text(encoding="utf-8").strip()
 
-    def get_rooms_with_largest_age_difference(self, limit: int = 5) -> list[dict]:
-        query = """
-            SELECT
-                r.id AS room_id,
-                r.name AS room_name,
-                ROUND(
-                    ((MAX(CURRENT_DATE - s.birthday) - MIN(CURRENT_DATE - s.birthday)) / 365.25)::numeric,
-                    2
-                )::float AS age_difference
-            FROM rooms r
-            JOIN students s ON r.id = s.room_id
-            GROUP BY r.id, r.name
-            HAVING COUNT(s.id) > 1
-            ORDER BY age_difference DESC, r.id
-            LIMIT %s;
-        """
+        if not query:
+            raise ValueError(f"Query file is empty: {query_path}")
 
-        return self._fetch_all(query, (limit,))
+        return query
 
-    def get_mixed_sex_rooms(self) -> list[dict]:
-        query = """
-            SELECT
-                r.id AS room_id,
-                r.name AS room_name,
-                COUNT(s.id) AS student_count,
-                COUNT(DISTINCT s.sex) AS sex_count
-            FROM rooms r
-            JOIN students s ON r.id = s.room_id
-            GROUP BY r.id, r.name
-            HAVING COUNT(DISTINCT s.sex) > 1
-            ORDER BY r.id;
-        """
+    def explain_query(self, query_name: str) -> str:
+        query = self.get_sql(query_name).rstrip(";")
+        explain_query = f"EXPLAIN (ANALYZE, BUFFERS)\n{query};"
 
-        return self._fetch_all(query)
-
-    def _fetch_all(self, query: str, params: tuple | None = None) -> list[dict]:
         with get_connection() as connection:
             with connection.cursor() as cursor:
-                cursor.execute(query, params)
+                cursor.execute(explain_query)
+                rows = cursor.fetchall()
+
+        return "\n".join(row[0] for row in rows)
+
+    def _validate_query_name(self, query_name: str) -> None:
+        if query_name not in self.QUERY_FILES:
+            available = ", ".join(self.available_queries())
+            raise ValueError(
+                f"Unknown query '{query_name}'. Available queries: {available}."
+            )
+
+    def _fetch_all(self, query: str) -> list[dict]:
+        with get_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(query)
                 columns = [desc[0] for desc in cursor.description]
                 rows = cursor.fetchall()
 
