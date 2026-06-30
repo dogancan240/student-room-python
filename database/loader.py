@@ -12,6 +12,42 @@ def load_json_file(file_path: str) -> list[dict]:
         return json.load(file)
 
 
+def load_initial_data_if_needed(
+    rooms_file_path: str,
+    students_file_path: str,
+) -> tuple[str, ...]:
+    table_status = get_table_data_status()
+    loaded_tables = []
+
+    if not table_status["rooms"]:
+        load_rooms(rooms_file_path)
+        loaded_tables.append("rooms")
+
+    if not table_status["students"]:
+        load_students(students_file_path)
+        loaded_tables.append("students")
+
+    return tuple(loaded_tables)
+
+
+def get_table_data_status() -> dict[str, bool]:
+    with get_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    EXISTS (SELECT 1 FROM rooms),
+                    EXISTS (SELECT 1 FROM students);
+                """
+            )
+            rooms_have_data, students_have_data = cursor.fetchone()
+
+    return {
+        "rooms": rooms_have_data,
+        "students": students_have_data,
+    }
+
+
 def parse_birthday(value: str) -> date:
     return datetime.fromisoformat(value).date()
 

@@ -1,0 +1,12 @@
+{
+    "status": "success",
+    "action": "query",
+    "query": "largest_age_difference",
+    "format": "json",
+    "result_path": "output\\runs\\2026-06-30_21-32-42_largest_age_difference_json\\result.json",
+    "row_counts": {
+        "largest_age_difference": 5
+    },
+    "explain": false,
+    "run_folder": "output\\runs\\2026-06-30_21-32-42_largest_age_difference_json"
+}

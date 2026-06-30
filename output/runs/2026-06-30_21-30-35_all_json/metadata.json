@@ -1,0 +1,15 @@
+{
+    "status": "success",
+    "action": "query",
+    "query": "all",
+    "format": "json",
+    "result_path": "output\\runs\\2026-06-30_21-30-35_all_json\\result.json",
+    "row_counts": {
+        "room_student_counts": 1000,
+        "smallest_average_age": 5,
+        "largest_age_difference": 5,
+        "mixed_sex_rooms": 990
+    },
+    "explain": false,
+    "run_folder": "output\\runs\\2026-06-30_21-30-35_all_json"
+}

@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 from database.init_db import init_database
-from database.loader import load_rooms, load_students
+from database.loader import load_initial_data_if_needed
 from services.export_service import ExportService
 from services.index_service import IndexService
 from services.log_service import LogService
@@ -46,10 +46,23 @@ def _run_query_command(
     log_service.save_log(run_folder, "Database schema initialized.")
 
     if not args.skip_load:
-        load_rooms(args.rooms)
-        load_students(args.students)
-        log_service.save_log(run_folder, "Rooms and students loaded.")
+        loaded_tables = load_initial_data_if_needed(args.rooms, args.students)
+        if loaded_tables:
+            data_load_status = "loaded"
+            loaded_table_names = ", ".join(loaded_tables)
+            log_service.save_log(
+                run_folder,
+                f"Loaded missing data tables: {loaded_table_names}.",
+            )
+        else:
+            data_load_status = "already_loaded"
+            log_service.save_log(
+                run_folder,
+                "Data already exists; loading skipped.",
+            )
     else:
+        loaded_tables = ()
+        data_load_status = "skipped"
         log_service.save_log(run_folder, "Data loading skipped.")
 
     query_service = QueryService()
@@ -90,6 +103,8 @@ def _run_query_command(
             "format": args.format,
             "result_path": str(result_path),
             "row_counts": row_counts,
+            "data_load_status": data_load_status,
+            "loaded_tables": loaded_tables,
             "explain": args.explain,
             "run_folder": str(run_folder),
         },

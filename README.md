@@ -5,7 +5,7 @@ Python command-line app for loading `rooms` and `students` JSON files into Postg
 ## What It Does
 
 - Creates the `rooms` and `students` tables.
-- Loads rooms and students from JSON files before query commands.
+- Loads rooms and students from JSON files only when database data is missing.
 - Runs one selected analytics query or all analytics queries.
 - Exports query results as JSON or XML.
 - Adds or removes recommended PostgreSQL indexes from the CLI.
@@ -70,7 +70,7 @@ mixed_sex_rooms
 all
 ```
 
-By default, query commands load:
+By default, query commands load these files only when database data is missing:
 
 ```text
 data/rooms.json
@@ -83,7 +83,7 @@ You can override those paths:
 python main.py --query all --format json --rooms data/rooms.json --students data/students.json
 ```
 
-If the database is already loaded, skip loading:
+Query commands automatically skip loading when data already exists. To skip even the empty-table check:
 
 ```powershell
 python main.py --query all --format json --skip-load

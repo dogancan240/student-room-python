@@ -1,0 +1,1 @@
+main.py --query all --format json --rooms data/rooms.json --students data/students.json

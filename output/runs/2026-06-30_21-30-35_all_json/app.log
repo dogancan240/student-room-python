@@ -1,0 +1,5 @@
+[2026-06-30T21:30:35] Command started.
+[2026-06-30T21:30:35] Database schema initialized.
+[2026-06-30T21:30:36] Rooms and students loaded.
+[2026-06-30T21:30:37] Query result exported to output\runs\2026-06-30_21-30-35_all_json\result.json.
+[2026-06-30T21:30:37] Command completed.

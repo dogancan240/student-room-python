@@ -67,7 +67,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--skip-load",
         action="store_true",
-        help="Skip loading JSON data before running a query.",
+        help="Skip checking/loading JSON data before running a query.",
     )
 
     args = parser.parse_args()

@@ -1,0 +1,5 @@
+[2026-06-30T21:32:42] Command started.
+[2026-06-30T21:32:42] Database schema initialized.
+[2026-06-30T21:32:44] Rooms and students loaded.
+[2026-06-30T21:32:44] Query result exported to output\runs\2026-06-30_21-32-42_largest_age_difference_json\result.json.
+[2026-06-30T21:32:44] Command completed.
